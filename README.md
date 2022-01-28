@@ -1,1 +1,1 @@
-# CVCodeSnippets
+# Code Snippets Showcase
