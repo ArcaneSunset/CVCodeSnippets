@@ -5,9 +5,11 @@ The customer asked for as much control as possible on what a user can see and do
 Starting from singular permissions, users would be assigned to different roles, that in turn grouped a certain set of permissions.
 If needed, admins can assign permissions to the user directly for temporary bypass some restrictions or make exceptions for a user. */
 
-    /**
+     /**
      * 
-     * App\Permission - custom override of Spatie permissions
+     * class Permission extends \Spatie\Permission\Models\Permission
+     *
+     * custom override of Spatie permissions
      * 
      */
 
@@ -50,9 +52,13 @@ If needed, admins can assign permissions to the user directly for temporary bypa
 
     /**
      * 
-     * App\User
+     * class User extends Authenticable
      * 
      */
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Builder;
+use App\Permission;
 
     /**
      * Check if the user has clearance for a given route.
@@ -146,13 +152,15 @@ If needed, admins can assign permissions to the user directly for temporary bypa
 
     /**
      * 
-     * App\TaskCategory - Task categories needed some particular care.
+     * class TaskCategory
+     * Task categories needed some particular care.
      * The project required as much control as possible of categories. Every action on them had to have a dedicated permission to assign later on.
      * Since categories were completely dynamic, measures were to be made to create permissions on category creation and viceversa on its deletion
      * 
      */
 
-
+use Auth;
+use App\Permission;
 
     /**
      * The main function that filter tasks on the base of the active user, with an optional parameter to search for a specific action
@@ -170,16 +178,16 @@ If needed, admins can assign permissions to the user directly for temporary bypa
             if($action)
             //if checking for specific action, the wildcard character "*" gets replaced with the said action (ex. on "show" action -  "tasks.show" or "tasks.show.5")
             $permissions = $permissions->filter(function($value, $key) use ($action) {
-                return \Auth::user()->can(str_replace('*', $action, $value)) || \Auth::user()->can($value);
+                return Auth::user()->can(str_replace('*', $action, $value)) || \Auth::user()->can($value);
             });
             else
             $permissions = $permissions->filter(function($value, $key) {
-                return \Auth::user()->can($value);
+                return Auth::user()->can($value);
             });
-            return Category2::whereIn('slug', $permissions->toArray())->pluck('id');
+            return TaskCategory::whereIn('slug', $permissions->toArray())->pluck('id');
         } else {
             //admins and superadmins have most / all permissions by default, while not having permissions associated to them in the database, ovverriding is hardcoded in the role itself
-            return Category2::all()->pluck('id');
+            return TaskCategory::all()->pluck('id');
         }
     }
     
@@ -221,15 +229,20 @@ If needed, admins can assign permissions to the user directly for temporary bypa
      * 
      */
 
+use App\TaskCategory;
+use App\Permission;
+use App\PermissionData;
+use App\PermissionCategory;
+
     /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Category2Request $request)
+    public function store(TaskCategoryRequest $request)
     {
-        $category = Category2::create(array_merge($request->all(), $slug));
+        $category = TaskCategory::create(array_merge($request->all(), $slug));
         $slug = ['slug' => 'tasks.*.'.$category->id];
         $permission = Permission::firstOrCreate(['name' => $slug['slug']]);
         $permData = [
