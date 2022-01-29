@@ -5,7 +5,11 @@ The customer requested a CRM that subscribed trainers would use to log trainings
 The sport clubs and trainers got a report for player attendance, while the sports association would check the total amount
 of hours logged and issued the according funding to cover expenses */ 
 
-/* App\Team */ 
+/**
+* class Team 
+*/ 
+
+
 
 public function countUniqueLogs($logtype = NULL)
 {
@@ -36,13 +40,20 @@ public function uniqueLogs($logtype = NULL)
 }
 
 
-/* App\Player model - standardized queries for statistical analysis of player attendance inside a single sports team
-Attendance data is stored in a many-to-many pivot table for the purpose of storing player name and surname in case of player deletion from the database.
-Data would be fed to a table showing attendance statistics by player, overall and by log type */ 
+/** 
+* class Player
+*
+* standardized queries for statistical analysis of player attendance inside a single sports team
+* Attendance data is stored in a many-to-many pivot table for the purpose of storing player name and surname in case of player deletion from the database.
+* Data would be fed to a table showing attendance statistics by player, overall and by log type
+*/
+
+use Illuminate\Support\Facades\DB;
+use App\Log;
 
     public static function attendanceRecord($playerID, $team)
     {
-        return \DB::table('log_igralec')->where('player_id', $playerID)->whereIntegerInRaw('log_id', $team->uniqueLogs()->pluck('id')->toArray())->where('is_main_trainer', 1)->count();
+        return DB::table('log_igralec')->where('player_id', $playerID)->whereIntegerInRaw('log_id', $team->uniqueLogs()->pluck('id')->toArray())->where('is_main_trainer', 1)->count();
     }
 
     public static function attendancePercentage($playerID, $team)
@@ -53,7 +64,7 @@ Data would be fed to a table showing attendance statistics by player, overall an
 
     public static function attendanceTrainRecord($playerID, $team)
     {
-        $records = \DB::table('log_igralec')->whereIntegerInRaw('log_id', $team->uniqueLogs(1)->pluck('id')->toArray())->where('player_id', $playerID);
+        $records = DB::table('log_igralec')->whereIntegerInRaw('log_id', $team->uniqueLogs(1)->pluck('id')->toArray())->where('player_id', $playerID);
         return $records->count();
     }
 
@@ -68,7 +79,7 @@ Data would be fed to a table showing attendance statistics by player, overall an
     public static function attendanceCompRecord($playerID, $team, $typeID)
     {
         $uniqueLogs = $team->uniqueLogs($typeID)->pluck('id')->toArray();
-        $records = \DB::table('log_igralec')->whereIntegerInRaw('log_id', $uniqueLogs)->where('player_id', $playerID)->pluck('log_id')->toArray();
+        $records = DB::table('log_igralec')->whereIntegerInRaw('log_id', $uniqueLogs)->where('player_id', $playerID)->pluck('log_id')->toArray();
         return Log::find($records)->count();
     }
 
