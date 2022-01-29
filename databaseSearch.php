@@ -9,11 +9,20 @@
 *    for non-technical purposes (ie. performance breakdown for customers and non-technical personnel)
 */
 
+
+use App\Models\User;
+use App\Models\Tag;
+use Carbon\Carbon;
+use App\Models\TagEntry;
+use App\Http\Requests\GraphRequest;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Arr;
+
     public function getData(GraphRequest $request)
     {
         $chartArray = [];
-        $start_date = \Carbon\Carbon::parse($request->start_date)->format('Y-m-d H:i:s');
-        $end_date = \Carbon\Carbon::parse($request->end_date)->setTime('23', '59', '59')->format('Y-m-d H:i:s');
+        $start_date = Carbon::parse($request->start_date)->format('Y-m-d H:i:s');
+        $end_date = Carbon::parse($request->end_date)->setTime('23', '59', '59')->format('Y-m-d H:i:s');
         //statically set the chart type to "line" for the first example - later in development the user could choose from a line, bar, area and scatter chart
         $chartArray['type'] = 'line';
         //$request->tags is the array of selected sensor tags that the user could select to compare on the same chart
@@ -44,8 +53,8 @@
     public function getData2(GraphRequest $request)
     {
         $chartArray = [];
-        $start_date = \Carbon\Carbon::parse($request->start_date)->format('Y-m-d H:i:s');
-        $end_date = \Carbon\Carbon::parse($request->end_date)->setTime('23', '59', '59')->format('Y-m-d H:i:s');
+        $start_date = Carbon::parse($request->start_date)->format('Y-m-d H:i:s');
+        $end_date = Carbon::parse($request->end_date)->setTime('23', '59', '59')->format('Y-m-d H:i:s');
         foreach($request->tags as $id => $tag)
         {
             //fetching the options set for every sensor tag series (for every dataset)
@@ -92,8 +101,8 @@
                 
                 }
                 //Eloquent DB query constructor
-                /* $query = DB::connection('esync')
-                    ->table('tagshistory')
+                /* $query = DB::connection('db')
+                    ->table('data_tagshistory')
                     ->select(DB::raw($date.' as date'), DB::raw($value.' as Val'))
                     ->where('TagId', $tag['value'])
                     ->whereBetween('_date', [$start_date, $end_date])
@@ -106,7 +115,7 @@
                 $groupBy = '';
             }
             $query = collect(DB::select('SELECT '.$date.' as date, '.$value.' as Val
-                            FROM esync.esync_tagshistory tb1'
+                            FROM db.data_tagshistory tb1'
                             .$joinStatement.
                             ' WHERE tb1.TagId = '.$tag["value"].' AND (tb1._date BETWEEN "'.$start_date.'" AND "'.$end_date.'")'
                             .$joinQuery.''.$groupBy.';'));
@@ -126,7 +135,7 @@
             //direct pdo experiment - ~10.000 record/s - no improvement
 
             /* $sql = TagEntry::select('_date', 'Val')->where('TagId', $tag['value'])->whereBetween('_date', [$start_date, $end_date])->toSql();
-            $db = DB::connection('esync')->getPdo();
+            $db = DB::connection('db')->getPdo();
             $query = $db->prepare($sql);
             $query->execute(array($tag['value'], $start_date, $end_date));
 
@@ -137,8 +146,8 @@
 
             //raw statement on query builder - ~15.000 record/s - slight improvement
 
-            /* $historyQuery = DB::connection('esync')->select('select _date, Val
-            from `esync_tagshistory`
+            /* $historyQuery = DB::connection('db')->select('select _date, Val
+            from `data_tagshistory`
             where `TagId` = '.$tag['value'].'
             and `_date` between "'.$start_date.'" and "'.$end_date.'";'); */
 
