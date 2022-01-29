@@ -1,12 +1,12 @@
 <?php
 
-/* 
-The following are different versions of a data fetch function that I had to design for an industrial plant monitoring ERP.
-The user had to select the plant they needed to asses, at least one sensor from the VueJS frontend and select a time period,
-then the backend would fetch the data to feed to a graph. Eloquent was having severe performance issues when the user queried
-time periods exceeding 2 weeks, so I experimented with different approaches to data fetch (all commented in getData2() for future reference).
-The controller method also had the option to compress the data, assess hourly/daily/weekly/monthly averages to produce charts
-for non-technical purposes (ie. performance breakdown for customers and non-technical personnel)
+/**
+*    The following are different versions of a data fetch function that I had to design for an industrial plant monitor software.
+*    The user had to select the plant they needed to asses, at least one sensor from the VueJS frontend and select a time period,
+*    then the backend would fetch the data to feed to a graph. Eloquent was having severe performance issues when the user queried
+*    time periods exceeding 2 weeks, so I experimented with different approaches to data fetch (all commented in getData2() for future reference).
+*    The controller method also had the option to compress the data, assess hourly/daily/weekly/monthly averages to produce charts
+*    for non-technical purposes (ie. performance breakdown for customers and non-technical personnel)
 */
 
     public function getData(GraphRequest $request)
